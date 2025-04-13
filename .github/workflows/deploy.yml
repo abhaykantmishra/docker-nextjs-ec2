@@ -1,0 +1,43 @@
+name: Deploy Next.js App to EC2 with Versioning
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set release timestamp
+        run: echo "RELEASE=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_ENV
+
+      - name: Upload to EC2
+        uses: appleboy/scp-action@v0.1.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "."
+          target: "/home/ec2-user/app/releases/${{ env.RELEASE }}"
+
+      - name: SSH and deploy latest
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ec2-user/app
+            echo "🔄 Updating current symlink to new release: ${{ env.RELEASE }}"
+            ln -sfn releases/${{ env.RELEASE }} current
+
+            cd current
+            docker-compose down || true
+            docker-compose up -d --build
+
+            echo "✅ Deployment complete: ${{ env.RELEASE }}"

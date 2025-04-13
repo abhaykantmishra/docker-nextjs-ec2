@@ -1,0 +1,39 @@
+name: Rollback Deployment
+
+on:
+  workflow_dispatch:
+
+jobs:
+  rollback:
+    name: Rollback to Previous Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: SSH into EC2 and rollback
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ec2-user/app/releases
+
+            echo "📦 Available Releases:"
+            ls -1t
+
+            echo "🔁 Rolling back to previous release..."
+            PREV_RELEASE=$(ls -1t | sed -n 2p)
+
+            if [ -z "$PREV_RELEASE" ]; then
+              echo "❌ No previous release found. Rollback failed."
+              exit 1
+            fi
+
+            echo "✅ Switching to $PREV_RELEASE"
+            ln -sfn /home/ec2-user/app/releases/$PREV_RELEASE /home/ec2-user/app/current
+
+            cd /home/ec2-user/app/current
+            docker-compose down || true
+            docker-compose up -d --build
+
+            echo "🚀 Rollback complete to $PREV_RELEASE"
