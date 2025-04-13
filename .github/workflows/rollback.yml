@@ -13,10 +13,10 @@ jobs:
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
+          username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /home/ec2-user/app/releases
+            cd /home/ubuntu/app/releases
 
             echo "📦 Available Releases:"
             ls -1t
@@ -30,9 +30,9 @@ jobs:
             fi
 
             echo "✅ Switching to $PREV_RELEASE"
-            ln -sfn /home/ec2-user/app/releases/$PREV_RELEASE /home/ec2-user/app/current
+            ln -sfn /home/ubuntu/app/releases/$PREV_RELEASE /home/ubuntu/app/current
 
-            cd /home/ec2-user/app/current
+            cd /home/ubuntu/app/current
             docker-compose down || true
             docker-compose up -d --build
 
