@@ -7,7 +7,13 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 
+# Copy the rest of app
 COPY . .
+
+# Copy env file generated during GitHub Actions
+COPY .env.local .env.local
+
+# Build the app
 RUN npm run build
 
 # Step 2: Run the Next.js app in production
