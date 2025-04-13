@@ -23,5 +23,5 @@ COPY --from=builder /app ./
 RUN npm install --omit=dev
 
 EXPOSE 3000
-
+RUN echo "Environment check" && env | grep -i jwt || echo "No JWT env vars found"
 CMD ["npm", "start"]
