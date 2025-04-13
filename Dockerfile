@@ -10,9 +10,6 @@ RUN npm install
 # Copy the rest of app
 COPY . .
 
-# Copy env file generated during GitHub Actions
-COPY .env.local .env.local
-
 # Build the app
 RUN npm run build
 

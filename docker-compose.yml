@@ -1,9 +1,11 @@
 services:
   app:
     container_name: docker-nextjs-app
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
     restart: always
-    environment:
-      - NODE_ENV=production
+    env_file:
+      - .env.local
